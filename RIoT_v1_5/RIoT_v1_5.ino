@@ -57,8 +57,7 @@ const uint8_t TheID = 0;
 WiFiServer server(80);
 WiFiClient client;
 WiFiClient clientStreaming[MAX_CLIENTS];
-//byte APorStation = STATION_MODE;
-byte APorStation = AP_MODE;
+byte APorStation = STATION_MODE;
 char ssid[32];
 char ssidAP[32];
 char password[32] = "12345678";
@@ -478,7 +477,9 @@ void loop() {
       digitalWrite(POWER_LED, LOW);
     }
 
-    if((millis() - ElapsedTime >= SampleRate) && statusAP && !ConfigurationMode)
+    if((millis() - ElapsedTime >= SampleRate) && !ConfigurationMode &&
+    (((WiFi.status()==WL_CONNECTED) && (APorStation==STATION_MODE)) ||
+    (statusAP && (APorStation==AP_MODE))))
     {       
       ElapsedTime = millis();
       digitalWrite(POWER_LED, HIGH);
@@ -668,7 +669,7 @@ void loop() {
         unsigned int nbClients;      
         nbClients = WiFi.getTotalDevices();
         if(nbClients > MAX_CLIENTS)
-        nbClients = MAX_CLIENTS;     
+          nbClients = MAX_CLIENTS;     
        
         for(int i = 0 ; i < nbClients ; i++)
         {
@@ -826,8 +827,8 @@ void loop() {
                     else
                       APorStation = AP_MODE;
                     
-                    Serial.print("Updated DHCP: ");
-                    Serial.println(UseDHCP);
+                    Serial.print("Updated Mode: ");
+                    Serial.println(APorStation);
                   }
                   
                   if(!strncmp("type", StringBuffer, 4))
@@ -1531,6 +1532,7 @@ void ProcessSerial(void)
     // Outputs all the configuration  
     printf("%s %d\n", TEXT_DHCP, UseDHCP);
     printf("%s %s\n", TEXT_SSID, ssid);
+    printf("%s %s\n", TEXT_WIFI_MODE, APorStation);
     printf("%s %d\n", TEXT_SECURITY, UseSecurity);
     printf("%s %s\n", TEXT_PASSWORD, password);
     printf("%s %u.%u.%u.%u\n", TEXT_OWNIP, LocalIP[0], LocalIP[1], LocalIP[2], LocalIP[3] );
